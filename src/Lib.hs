@@ -1,5 +1,5 @@
 module Lib
-    ( check
+    ( match
     ) where
 
 import Data.Bool
@@ -13,8 +13,8 @@ data CronItemPattern = CronItemPattern Range Step
 
 data CronPattern = CronPattern [CronItemPattern]
 
-check :: DateTime -> String -> Bool
-check d s = checkPattern d (parseCronPattern s)
+match :: String -> DateTime -> Bool
+match s d = matchPattern (parseCronPattern s) d
 
 parseCronPattern :: String -> CronPattern
 parseCronPattern s = CronPattern $ map parseCronItemPattern $ words s
@@ -22,8 +22,8 @@ parseCronPattern s = CronPattern $ map parseCronItemPattern $ words s
 parseCronItemPattern :: String -> CronItemPattern
 parseCronItemPattern "*" = CronItemPattern Any All
 
-checkPattern :: DateTime -> CronPattern -> Bool
-checkPattern d (CronPattern (x:xs)) = checkItemPattern (year d) x
+matchPattern :: CronPattern -> DateTime -> Bool
+matchPattern (CronPattern (x:xs)) d = matchItemPattern x (year d)
 
-checkItemPattern :: Int -> CronItemPattern -> Bool
-checkItemPattern n (CronItemPattern Any All) = True
+matchItemPattern :: CronItemPattern -> Int -> Bool
+matchItemPattern (CronItemPattern Any All) _ = True
