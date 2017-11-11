@@ -14,15 +14,15 @@ data Range = Any | Pair Int Int | Sequence [Int]
 
 data Step = All | Value Int
 
-data CronItemPattern = CronItemPattern Range Step
+data Field = Field Range Step
 
-data CronPattern = CronPattern {
-    cminute :: CronItemPattern,
-    chour :: CronItemPattern,
-    cday :: CronItemPattern,
-    cmonth :: CronItemPattern,
-    cweek :: CronItemPattern,
-    cyear :: CronItemPattern
+data Pattern = Pattern {
+    cminute :: Field,
+    chour :: Field,
+    cday :: Field,
+    cmonth :: Field,
+    cweek :: Field,
+    cyear :: Field
 }
 
 match :: String -> DateTime -> Bool
@@ -35,14 +35,14 @@ safeMatch s d = case parse s of
     Just p -> Just (check p d)
     Nothing -> Nothing
 
-parse :: String -> Maybe CronPattern
+parse :: String -> Maybe Pattern
 parse s
     | isInvalid = Nothing
     | otherwise = Just (createPattern $ catMaybes parts)
     where
         parts = createParts s
         isInvalid = checkParts parts == False
-        createPattern xs = CronPattern {
+        createPattern xs = Pattern {
             cminute = xs !! 0,
             chour = xs !! 1,
             cday = xs !! 2,
@@ -57,29 +57,29 @@ createParts s = map f $ zip parsers (words s)
     where
         f (g, s) = g s
 
-checkParts :: [Maybe CronItemPattern] -> Bool
+checkParts :: [Maybe Field] -> Bool
 checkParts xs
     | length xs /= 6 = False
     | any isNothing xs = False
     | otherwise = True
 
-parseCronItemPattern :: (Int, Int) -> String -> Maybe CronItemPattern
-parseCronItemPattern (f, t) s
-    | s == "*" = Just (CronItemPattern Any All)
-    | validNumber == True = Just (CronItemPattern (Pair x x) All)
+parseField :: (Int, Int) -> String -> Maybe Field
+parseField (f, t) s
+    | s == "*" = Just (Field Any All)
+    | validNumber == True = Just (Field (Pair x x) All)
     | otherwise = Nothing
     where 
         x = read s :: Int
         validNumber = all isDigit s && x >= f && x <= t
 
-parseMinute = parseCronItemPattern (0, 59)
-parseHour = parseCronItemPattern (0, 59)
-parseDay = parseCronItemPattern (1, 31)
-parseMonth = parseCronItemPattern (1, 12)
-parseWeek = parseCronItemPattern (1, 7)
-parseYear = parseCronItemPattern (0, 9999)
+parseMinute = parseField (0, 59)
+parseHour = parseField (0, 59)
+parseDay = parseField (1, 31)
+parseMonth = parseField (1, 12)
+parseWeek = parseField (1, 7)
+parseYear = parseField (0, 9999)
 
-check :: CronPattern -> DateTime -> Bool
+check :: Pattern -> DateTime -> Bool
 check pattern date = all isRight pairs
     where 
         pairs = [ (cminute pattern, minute date),
@@ -89,8 +89,8 @@ check pattern date = all isRight pairs
                   (cweek pattern, weekdayNumber $ dateWeekDay date),
                   (cyear pattern, year date)
                 ]
-        isRight (pattern, value) = matchItemPattern pattern value 
+        isRight (pattern, value) = matchField pattern value 
 
-matchItemPattern :: CronItemPattern -> Int -> Bool
-matchItemPattern (CronItemPattern Any All) _ = True
-matchItemPattern (CronItemPattern (Pair f t) All) x = x >= f && x <= t
+matchField :: Field -> Int -> Bool
+matchField (Field Any All) _ = True
+matchField (Field (Pair f t) All) x = x >= f && x <= t
