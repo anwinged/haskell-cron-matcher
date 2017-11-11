@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Pattern
 
 main :: IO ()
 main = return ()

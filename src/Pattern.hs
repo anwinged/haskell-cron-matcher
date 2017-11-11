@@ -1,20 +1,17 @@
-module Lib
-    ( match,
+module Pattern
+    ( Pattern(..),
+      match,
       parse,
       check,
-      createParts
+      createParts,
+      parseField
     ) where
 
-import Data.Bool
 import Data.Dates
-import Data.Char (isDigit)
-import Data.Maybe (catMaybes, isNothing)
+import Data.Maybe
 
-data Range = Any | Pair Int Int | Sequence [Int]
-
-data Step = All | Value Int
-
-data Field = Field Range Step
+import Field
+import Constraint
 
 data Pattern = Pattern {
     cminute :: Field,
@@ -51,8 +48,6 @@ parse s
             cyear = xs !! 5
         }
 
-parsers = [parseMinute, parseHour, parseDay, parseMonth, parseWeek, parseYear]
-
 createParts s = map f $ zip parsers (words s)
     where
         f (g, s) = g s
@@ -63,25 +58,21 @@ checkParts xs
     | any isNothing xs = False
     | otherwise = True
 
-parseField :: (Int, Int) -> String -> Maybe Field
-parseField (f, t) s
-    | s == "*" = Just (Field Any All)
-    | validNumber == True = Just (Field (Pair x x) All)
-    | otherwise = Nothing
-    where 
-        x = read s :: Int
-        validNumber = all isDigit s && x >= f && x <= t
+parseFieldAdapter :: Constraint -> String -> Maybe Field
+parseFieldAdapter c t = parseField t c
 
-parseMinute = parseField (0, 59)
-parseHour = parseField (0, 59)
-parseDay = parseField (1, 31)
-parseMonth = parseField (1, 12)
-parseWeek = parseField (1, 7)
-parseYear = parseField (0, 9999)
+parseMinute = parseFieldAdapter (Constraint 0 59)
+parseHour = parseFieldAdapter (Constraint 0 59)
+parseDay = parseFieldAdapter (Constraint 1 31)
+parseMonth = parseFieldAdapter (Constraint 1 12)
+parseWeek = parseFieldAdapter (Constraint 1 7)
+parseYear = parseFieldAdapter (Constraint 0 9999)
+
+parsers = [parseMinute, parseHour, parseDay, parseMonth, parseWeek, parseYear]
 
 check :: Pattern -> DateTime -> Bool
 check pattern date = all isRight pairs
-    where 
+    where
         pairs = [ (cminute pattern, minute date),
                   (chour pattern, hour date),
                   (cday pattern, day date),
@@ -89,8 +80,8 @@ check pattern date = all isRight pairs
                   (cweek pattern, weekdayNumber $ dateWeekDay date),
                   (cyear pattern, year date)
                 ]
-        isRight (pattern, value) = matchField pattern value 
+        isRight (pattern, value) = matchField pattern value
 
 matchField :: Field -> Int -> Bool
-matchField (Field Any All) _ = True
-matchField (Field (Pair f t) All) x = x >= f && x <= t
+matchField (Field All Every) _ = True
+matchField (Field (Range f t) Every) x = x >= f && x <= t
