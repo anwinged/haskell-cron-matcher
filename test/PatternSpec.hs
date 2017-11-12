@@ -40,6 +40,6 @@ spec = do
 countMatches :: String -> [DateTime] -> Int
 countMatches p xs = sum $ map (f p) xs
   where
-    f p d = case match p d of
+    f x d = case match x d of
       True -> 1
       False -> 0

@@ -16,11 +16,21 @@ data Field = Field Range Step
   deriving (Eq, Show)
 
 parseField :: String -> Constraint -> Maybe Field
-parseField text constraint
+parseField text constraint = parseField' (wordsWhen (== '/') text) constraint
+
+parseField' :: [String] -> Constraint -> Maybe Field
+parseField' [rangeText] constraint
   | isJust range = Just (Field (fromJust range) Every)
   | otherwise = Nothing
   where
-    range = parseFieldRange text constraint
+    range = parseFieldRange rangeText constraint
+parseField' [rangeText, stepText] constraint
+  | isJust range && isJust step = Just (Field (fromJust range) (fromJust step))
+  | otherwise = Nothing
+  where
+    range = parseFieldRange rangeText constraint
+    step = parseFieldStep stepText
+parseField' _ _ = Nothing
 
 parseFieldRange :: String -> Constraint -> Maybe Range
 parseFieldRange text constraint
@@ -76,3 +86,15 @@ parseFieldStep :: String -> Maybe Step
 parseFieldStep "" = Just Every
 parseFieldStep text | isNumber text = Just (Step (read text))
 parseFieldStep _ = Nothing
+
+matchField :: Field -> Int -> Bool
+matchField (Field range step) n = matchFieldRange range n && matchFieldStep step n
+
+matchFieldRange :: Range -> Int -> Bool
+matchFieldRange All _ = True
+matchFieldRange (Range x y) n = n >= x && n <= y
+matchFieldRange (Sequence xs) n = n `elem` xs
+
+matchFieldStep :: Step -> Int -> Bool
+matchFieldStep Every _ = True
+matchFieldStep (Step x) n = n `mod` x == 0

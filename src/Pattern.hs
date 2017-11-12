@@ -1,6 +1,7 @@
 module Pattern
     ( Pattern(..),
       match,
+      safeMatch,
       parse,
       check,
       createParts,
@@ -25,7 +26,7 @@ data Pattern = Pattern {
 match :: String -> DateTime -> Bool
 match s d =  case parse s of
     Just p -> check p d
-    Nothing -> error ""
+    Nothing -> error "Parse error"
 
 safeMatch :: String -> DateTime -> Maybe Bool
 safeMatch s d = case parse s of
@@ -81,7 +82,3 @@ check pattern date = all isRight pairs
                   (cyear pattern, year date)
                 ]
         isRight (pattern, value) = matchField pattern value
-
-matchField :: Field -> Int -> Bool
-matchField (Field All Every) _ = True
-matchField (Field (Range f t) Every) x = x >= f && x <= t
