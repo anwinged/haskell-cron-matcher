@@ -1,7 +1,6 @@
 module HelperSpec (main, spec) where
 
 import Test.Hspec
-
 import Helper
 
 main :: IO ()

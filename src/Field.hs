@@ -20,22 +20,25 @@ parseField text constraint
   | isAll = Just (Field All Every)
   | isNumber = Just (Field (Range number number) Every)
   | isRange = Just (Field (Range leftBound rightBound) Every)
+  | isSequence = Just (Field (Sequence numbers) Every)
   | otherwise = Nothing
   where
     -- All
     isAll = parseAll text
     -- Number
     numberParseResult = parseNumber text constraint
-    isNumber = isJust $ numberParseResult
+    isNumber = isJust numberParseResult
     number = fromJust numberParseResult
     -- Range
     rangeParseResult = parseRange text constraint
-    isRange = isJust $ rangeParseResult
+    isRange = isJust rangeParseResult
     rangeValues (Just p) = p
     leftBound = fst (rangeValues rangeParseResult)
     rightBound = snd (rangeValues rangeParseResult)
-    -- -- Sequence
-    -- matchSequence = matchRegex (mkRegex "(([0-9]+)[, ]?)+") s
+    -- Sequence
+    sequenceParseResult = parseSequence text constraint
+    isSequence = isJust sequenceParseResult
+    numbers = fromJust sequenceParseResult
 
 parseAll :: String -> Bool
 parseAll "*" = True
@@ -63,3 +66,14 @@ parseRange text constraint
     start = read (pieces !! 0) :: Int
     end = read (pieces !! 1) :: Int
     isValid = isTwo && isAllNumbers && start <= start && (start, end) `inside` constraint
+
+parseSequence :: String -> Constraint -> Maybe [Int]
+parseSequence text constraint
+  | isValid = Just numbers
+  | otherwise = Nothing
+  where
+    pieces = wordsWhen (== ',') text
+    isAllNumbers = all isNumber pieces
+    numbers = map read pieces
+    allInRange = all (\x -> x `inRange` constraint) numbers
+    isValid = length pieces >= 2 && isAllNumbers && allInRange
