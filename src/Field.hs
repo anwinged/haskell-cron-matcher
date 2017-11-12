@@ -27,7 +27,7 @@ parseFieldRange text constraint
   | isAll = Just All
   | isJust number = Just (Range (fromJust number) (fromJust number))
   | isJust range = Just (Range (fst $ fromJust range) (snd $ fromJust range))
-  | isJust sequence = Just (Sequence (fromJust sequence))
+  | isJust sequence = fmap Sequence sequence
   where
     isAll = parseAll text
     number = parseNumber text constraint
