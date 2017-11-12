@@ -71,3 +71,8 @@ parseSequence text constraint
     numbers = map read pieces
     allInRange = all (\x -> x `inRange` constraint) numbers
     isValid = length pieces >= 2 && isAllNumbers && allInRange
+
+parseFieldStep :: String -> Maybe Step
+parseFieldStep "" = Just Every
+parseFieldStep text | isNumber text = Just (Step (read text))
+parseFieldStep _ = Nothing

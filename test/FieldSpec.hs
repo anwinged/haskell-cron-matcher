@@ -19,6 +19,8 @@ spec = do
     it "fails constraints" $
       parseNumber "10" (Constraint 0 5) `shouldBe` Nothing
 
+  -- Field validation
+
   describe "Field can be created from" $ do
     it "asterisk" $
       parseField "*" (Constraint 0 0) `shouldBe` Just (Field All Every)
@@ -31,3 +33,16 @@ spec = do
 
     it "sequence" $
       parseField "1,2,3" (Constraint 0 59) `shouldBe` Just (Field (Sequence [1, 2, 3]) Every)
+
+  -- Field Step validation
+
+  describe "Step can be created from" $ do
+    it "empty string" $
+      parseFieldStep "" `shouldBe` Just Every
+
+    it "number" $
+      parseFieldStep "5" `shouldBe` Just (Step 5)
+
+  describe "Step cant'b created from" $ do
+    it "word" $
+      parseFieldStep "hello" `shouldBe` Nothing
