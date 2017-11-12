@@ -1,18 +1,25 @@
 module Field where
 
-import Data.Char (isDigit)
-import Data.Maybe
+import           Constraint
+import           Data.Char  (isDigit)
+import           Data.Maybe
+import           Helper
 
-import Constraint
-import Helper
-
-data Range = All | Range Int Int | Sequence [Int]
+data Range
+  = All
+  | Range Int
+          Int
+  | Sequence [Int]
   deriving (Eq, Show)
 
-data Step = Every | Step Int
+data Step
+  = Every
+  | Step Int
   deriving (Eq, Show)
 
-data Field = Field Range Step
+data Field =
+  Field Range
+        Step
   deriving (Eq, Show)
 
 parseField :: String -> Constraint -> Maybe Field
@@ -64,7 +71,9 @@ parseRange text constraint
     isAllNumbers = all isNumber pieces
     start = read (head pieces) :: Int
     end = read (pieces !! 1) :: Int
-    isValid = isTwo && isAllNumbers && start <= start && (start, end) `inside` constraint
+    isValid =
+      isTwo &&
+      isAllNumbers && start <= start && (start, end) `inside` constraint
 
 parseSequence :: String -> Constraint -> Maybe [Int]
 parseSequence text constraint
@@ -79,17 +88,19 @@ parseSequence text constraint
 
 parseFieldStep :: String -> Maybe Step
 parseFieldStep "" = Just Every
-parseFieldStep text | isNumber text = Just (Step (read text))
+parseFieldStep text
+  | isNumber text = Just (Step (read text))
 parseFieldStep _ = Nothing
 
 matchField :: Field -> Int -> Bool
-matchField (Field range step) n = matchFieldRange range n && matchFieldStep step n
+matchField (Field range step) n =
+  matchFieldRange range n && matchFieldStep step n
 
 matchFieldRange :: Range -> Int -> Bool
-matchFieldRange All _ = True
-matchFieldRange (Range x y) n = n >= x && n <= y
+matchFieldRange All _           = True
+matchFieldRange (Range x y) n   = n >= x && n <= y
 matchFieldRange (Sequence xs) n = n `elem` xs
 
 matchFieldStep :: Step -> Int -> Bool
-matchFieldStep Every _ = True
+matchFieldStep Every _    = True
 matchFieldStep (Step x) n = n `mod` x == 0

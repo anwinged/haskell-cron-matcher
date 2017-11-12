@@ -1,9 +1,9 @@
 module Constraint where
 
-data Constraint = Constraint {
-  lower :: Int,
-  upper :: Int
-} deriving (Show, Eq)
+data Constraint = Constraint
+  { lower :: Int
+  , upper :: Int
+  } deriving (Show, Eq)
 
 makeRangeFromNumber :: Int -> Constraint
 makeRangeFromNumber x = Constraint x x
