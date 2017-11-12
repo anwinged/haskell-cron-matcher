@@ -1,4 +1,6 @@
-module Helper where
+module Helper
+  ( wordsWhen
+  ) where
 
 wordsWhen :: (Char -> Bool) -> String -> [String]
 wordsWhen p s =

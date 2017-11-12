@@ -34,23 +34,23 @@ spec = do
   describe "Step can be created from" $ do
     it "empty string" $ parseFieldStep "" `shouldBe` Just Every
     it "number" $ parseFieldStep "5" `shouldBe` Just (Step 5)
-  describe "Step cant'b created from" $ do
+  describe "Step cant'b created from" $
     it "word" $ parseFieldStep "hello" `shouldBe` Nothing
   -- Field validation
   describe "Field can be created from" $ do
     it "asterisk" $
       parseField "*" (Constraint 0 59) `shouldBe` Just (Field All Every)
-    it "asterisk with step" $ do
+    it "asterisk with step" $
       parseField "*/5" (Constraint 0 59) `shouldBe` Just (Field All (Step 5))
-    it "number with step" $ do
+    it "number with step" $
       parseField "10/5" (Constraint 0 59) `shouldBe`
-        Just (Field (Range 10 10) (Step 5))
-    it "range with step" $ do
+      Just (Field (Range 10 10) (Step 5))
+    it "range with step" $
       parseField "0-59/5" (Constraint 0 59) `shouldBe`
-        Just (Field (Range 0 59) (Step 5))
-    it "sequence with step" $ do
+      Just (Field (Range 0 59) (Step 5))
+    it "sequence with step" $
       parseField "1,3,4/5" (Constraint 0 59) `shouldBe`
-        Just (Field (Sequence [1, 3, 4]) (Step 5))
+      Just (Field (Sequence [1, 3, 4]) (Step 5))
   -- Field match
   describe "Field can match" $ do
     it "number" $ count (Field All Every) [0 .. 59] `shouldBe` 60

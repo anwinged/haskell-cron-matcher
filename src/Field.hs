@@ -1,4 +1,6 @@
-module Field where
+module Field
+  ( module Field
+  ) where
 
 import           Constraint
 import           Data.Char  (isDigit)
@@ -44,11 +46,12 @@ parseFieldRange text constraint
   | text == "*" = Just All
   | isJust number = Just (Range (fromJust number) (fromJust number))
   | isJust range = Just (uncurry Range (fromJust range))
-  | isJust sequence = fmap Sequence sequence
+  | isJust valueSequence = fmap Sequence valueSequence
+  | otherwise = Nothing
   where
     number = parseNumber text constraint
     range = parseRange text constraint
-    sequence = parseSequence text constraint
+    valueSequence = parseSequence text constraint
 
 isNumber :: String -> Bool
 isNumber = all isDigit

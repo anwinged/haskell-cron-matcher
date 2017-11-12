@@ -1,11 +1,9 @@
 module Pattern
   ( Pattern(..)
   , match
-  , safeMatch
   , parse
   , check
-  , createParts
-  , parseField
+  , createFields
   ) where
 
 import           Constraint
@@ -20,16 +18,10 @@ data Pattern = Pattern
   , cmonth  :: Field
   , cweek   :: Field
   , cyear   :: Field
-  }
+  } deriving (Show)
 
-match :: String -> DateTime -> Bool
+match :: String -> DateTime -> Maybe Bool
 match s d =
-  case parse s of
-    Just p  -> check p d
-    Nothing -> error "Parse error"
-
-safeMatch :: String -> DateTime -> Maybe Bool
-safeMatch s d =
   case parse s of
     Just p  -> Just (check p d)
     Nothing -> Nothing
@@ -39,7 +31,7 @@ parse s
   | isInvalid = Nothing
   | otherwise = Just (createPattern $ catMaybes parts)
   where
-    parts = createParts s
+    parts = createFields s
     isInvalid = not (checkParts parts)
     createPattern xs =
       Pattern
@@ -51,9 +43,10 @@ parse s
       , cyear = xs !! 5
       }
 
-createParts s = zipWith (curry f) parsers (words s)
+createFields :: String -> [Maybe Field]
+createFields text = zipWith (curry f) parsers (words text)
   where
-    f (g, s) = g s
+    f (parser, s) = parser s
 
 checkParts :: [Maybe Field] -> Bool
 checkParts xs
@@ -64,18 +57,25 @@ checkParts xs
 parseFieldAdapter :: Constraint -> String -> Maybe Field
 parseFieldAdapter c t = parseField t c
 
+parseMinute :: String -> Maybe Field
 parseMinute = parseFieldAdapter (Constraint 0 59)
 
-parseHour = parseFieldAdapter (Constraint 0 59)
+parseHour :: String -> Maybe Field
+parseHour = parseFieldAdapter (Constraint 0 23)
 
+parseDay :: String -> Maybe Field
 parseDay = parseFieldAdapter (Constraint 1 31)
 
+parseMonth :: String -> Maybe Field
 parseMonth = parseFieldAdapter (Constraint 1 12)
 
+parseWeek :: String -> Maybe Field
 parseWeek = parseFieldAdapter (Constraint 1 7)
 
+parseYear :: String -> Maybe Field
 parseYear = parseFieldAdapter (Constraint 0 9999)
 
+parsers :: [String -> Maybe Field]
 parsers = [parseMinute, parseHour, parseDay, parseMonth, parseWeek, parseYear]
 
 check :: Pattern -> DateTime -> Bool
