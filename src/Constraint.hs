@@ -12,4 +12,4 @@ inside :: (Int, Int) -> Constraint -> Bool
 inside (x, y) (Constraint lower upper) = x >= lower && y <= upper
 
 inRange :: Int -> Constraint -> Bool
-inRange x cons = inside (x, x) cons
+inRange x = inside (x, x)

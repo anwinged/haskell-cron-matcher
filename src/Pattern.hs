@@ -39,9 +39,9 @@ parse s
     | otherwise = Just (createPattern $ catMaybes parts)
     where
         parts = createParts s
-        isInvalid = checkParts parts == False
+        isInvalid = not (checkParts parts)
         createPattern xs = Pattern {
-            cminute = xs !! 0,
+            cminute = head xs,
             chour = xs !! 1,
             cday = xs !! 2,
             cmonth = xs !! 3,
@@ -49,9 +49,9 @@ parse s
             cyear = xs !! 5
         }
 
-createParts s = map f $ zip parsers (words s)
-    where
-        f (g, s) = g s
+createParts s = zipWith (curry f) parsers (words s)
+  where
+    f (g, s) = g s
 
 checkParts :: [Maybe Field] -> Bool
 checkParts xs
@@ -72,13 +72,13 @@ parseYear = parseFieldAdapter (Constraint 0 9999)
 parsers = [parseMinute, parseHour, parseDay, parseMonth, parseWeek, parseYear]
 
 check :: Pattern -> DateTime -> Bool
-check pattern date = all isRight pairs
-    where
-        pairs = [ (cminute pattern, minute date),
-                  (chour pattern, hour date),
-                  (cday pattern, day date),
-                  (cmonth pattern, month date),
-                  (cweek pattern, weekdayNumber $ dateWeekDay date),
-                  (cyear pattern, year date)
-                ]
-        isRight (pattern, value) = matchField pattern value
+check ptn date = all isRight pairs
+  where
+    pairs = [ (cminute ptn, minute date),
+              (chour ptn, hour date),
+              (cday ptn, day date),
+              (cmonth ptn, month date),
+              (cweek ptn, weekdayNumber $ dateWeekDay date),
+              (cyear ptn, year date)
+            ]
+    isRight (p, value) = matchField p value

@@ -11,16 +11,16 @@ main :: IO ()
 main = do
   args <- getArgs
   dt <- getCurrentDateTime
-  case processArgs args dt of
-    Just True -> exitWith ExitSuccess
-    Just False -> exitWith (ExitFailure 1)
-    Nothing -> exitWith (ExitFailure 2)
+  exitWith $ case processArgs args dt of
+    Just True -> ExitSuccess
+    Just False -> ExitFailure 1
+    Nothing -> ExitFailure 2
 
 processArgs :: [String] -> DateTime -> Maybe Bool
-processArgs [pattern] dt = safeMatch pattern dt
-processArgs [pattern, time] dt = matchGivenTime pattern (parseDate dt time)
+processArgs [ptn] dt = safeMatch ptn dt
+processArgs [ptn, time] dt = matchGivenTime ptn (parseDate dt time)
 processArgs _ _ = Nothing
 
 matchGivenTime :: String -> Either ParseError DateTime -> Maybe Bool
 matchGivenTime _ (Left _) = Nothing
-matchGivenTime pattern (Right dt) = safeMatch pattern dt
+matchGivenTime ptn (Right dt) = safeMatch ptn dt

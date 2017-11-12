@@ -16,7 +16,7 @@ data Field = Field Range Step
   deriving (Eq, Show)
 
 parseField :: String -> Constraint -> Maybe Field
-parseField text constraint = parseField' (wordsWhen (== '/') text) constraint
+parseField text = parseField' (wordsWhen (== '/') text)
 
 parseField' :: [String] -> Constraint -> Maybe Field
 parseField' [rangeText] constraint
@@ -34,19 +34,14 @@ parseField' _ _ = Nothing
 
 parseFieldRange :: String -> Constraint -> Maybe Range
 parseFieldRange text constraint
-  | isAll = Just All
+  | text == "*" = Just All
   | isJust number = Just (Range (fromJust number) (fromJust number))
-  | isJust range = Just (Range (fst $ fromJust range) (snd $ fromJust range))
+  | isJust range = Just (uncurry Range (fromJust range))
   | isJust sequence = fmap Sequence sequence
   where
-    isAll = parseAll text
     number = parseNumber text constraint
     range = parseRange text constraint
     sequence = parseSequence text constraint
-
-parseAll :: String -> Bool
-parseAll "*" = True
-parseAll _ = False
 
 isNumber :: String -> Bool
 isNumber = all isDigit
@@ -67,7 +62,7 @@ parseRange text constraint
     pieces = wordsWhen (== '-') text
     isTwo = length pieces == 2
     isAllNumbers = all isNumber pieces
-    start = read (pieces !! 0) :: Int
+    start = read (head pieces) :: Int
     end = read (pieces !! 1) :: Int
     isValid = isTwo && isAllNumbers && start <= start && (start, end) `inside` constraint
 
@@ -79,7 +74,7 @@ parseSequence text constraint
     pieces = wordsWhen (== ',') text
     isAllNumbers = all isNumber pieces
     numbers = map read pieces
-    allInRange = all (\x -> x `inRange` constraint) numbers
+    allInRange = all (`inRange` constraint) numbers
     isValid = length pieces >= 2 && isAllNumbers && allInRange
 
 parseFieldStep :: String -> Maybe Step
