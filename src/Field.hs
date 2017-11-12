@@ -17,28 +17,22 @@ data Field = Field Range Step
 
 parseField :: String -> Constraint -> Maybe Field
 parseField text constraint
-  | isAll = Just (Field All Every)
-  | isNumber = Just (Field (Range number number) Every)
-  | isRange = Just (Field (Range leftBound rightBound) Every)
-  | isSequence = Just (Field (Sequence numbers) Every)
+  | isJust range = Just (Field (fromJust range) Every)
   | otherwise = Nothing
   where
-    -- All
+    range = parseFieldRange text constraint
+
+parseFieldRange :: String -> Constraint -> Maybe Range
+parseFieldRange text constraint
+  | isAll = Just All
+  | isJust number = Just (Range (fromJust number) (fromJust number))
+  | isJust range = Just (Range (fst $ fromJust range) (snd $ fromJust range))
+  | isJust sequence = Just (Sequence (fromJust sequence))
+  where
     isAll = parseAll text
-    -- Number
-    numberParseResult = parseNumber text constraint
-    isNumber = isJust numberParseResult
-    number = fromJust numberParseResult
-    -- Range
-    rangeParseResult = parseRange text constraint
-    isRange = isJust rangeParseResult
-    rangeValues (Just p) = p
-    leftBound = fst (rangeValues rangeParseResult)
-    rightBound = snd (rangeValues rangeParseResult)
-    -- Sequence
-    sequenceParseResult = parseSequence text constraint
-    isSequence = isJust sequenceParseResult
-    numbers = fromJust sequenceParseResult
+    number = parseNumber text constraint
+    range = parseRange text constraint
+    sequence = parseSequence text constraint
 
 parseAll :: String -> Bool
 parseAll "*" = True
