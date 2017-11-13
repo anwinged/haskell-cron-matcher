@@ -44,9 +44,9 @@ parse s
       }
 
 createFields :: String -> [Maybe Field]
-createFields text = zipWith (curry f) parsers (words text)
+createFields text = zipWith f constraints (words text)
   where
-    f (parser, s) = parser s
+    f constraint word = parseField word constraint
 
 checkParts :: [Maybe Field] -> Bool
 checkParts xs
@@ -55,28 +55,35 @@ checkParts xs
   | otherwise = True
 
 parseFieldAdapter :: Constraint -> String -> Maybe Field
-parseFieldAdapter c t = parseField t c
+parseFieldAdapter constraint text = parseField text constraint
 
-parseMinute :: String -> Maybe Field
-parseMinute = parseFieldAdapter (Constraint 0 59)
+constrainMinute :: Constraint
+constrainMinute = Constraint 0 59
 
-parseHour :: String -> Maybe Field
-parseHour = parseFieldAdapter (Constraint 0 23)
+constrainHour :: Constraint
+constrainHour = Constraint 0 23
 
-parseDay :: String -> Maybe Field
-parseDay = parseFieldAdapter (Constraint 1 31)
+constrainDay :: Constraint
+constrainDay = Constraint 1 31
 
-parseMonth :: String -> Maybe Field
-parseMonth = parseFieldAdapter (Constraint 1 12)
+constrainMonth :: Constraint
+constrainMonth = Constraint 1 12
 
-parseWeek :: String -> Maybe Field
-parseWeek = parseFieldAdapter (Constraint 1 7)
+constrainWeek :: Constraint
+constrainWeek = Constraint 1 7
 
-parseYear :: String -> Maybe Field
-parseYear = parseFieldAdapter (Constraint 0 9999)
+constrainYear :: Constraint
+constrainYear = Constraint 0 9999
 
-parsers :: [String -> Maybe Field]
-parsers = [parseMinute, parseHour, parseDay, parseMonth, parseWeek, parseYear]
+constraints :: [Constraint]
+constraints =
+  [ constrainMinute
+  , constrainHour
+  , constrainDay
+  , constrainMonth
+  , constrainWeek
+  , constrainYear
+  ]
 
 check :: Pattern -> DateTime -> Bool
 check ptn date = all isRight pairs
