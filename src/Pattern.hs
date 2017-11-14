@@ -3,7 +3,6 @@ module Pattern
   , match
   , parse
   , check
-  , createFields
   ) where
 
 import           Constraint
@@ -27,12 +26,12 @@ match s d =
     Nothing -> Nothing
 
 parse :: String -> Maybe Pattern
-parse s
-  | isInvalid = Nothing
-  | otherwise = Just (createPattern $ catMaybes parts)
+parse text
+  | isValid = Just (createPattern $ catMaybes fields)
+  | otherwise = Nothing
   where
-    parts = createFields s
-    isInvalid = not (checkParts parts)
+    fields = zipWith parseField (words text) constraints
+    isValid = checkFields fields
     createPattern xs =
       Pattern
       { cminute = head xs
@@ -43,19 +42,11 @@ parse s
       , cyear = xs !! 5
       }
 
-createFields :: String -> [Maybe Field]
-createFields text = zipWith f constraints (words text)
-  where
-    f constraint word = parseField word constraint
-
-checkParts :: [Maybe Field] -> Bool
-checkParts xs
+checkFields :: [Maybe Field] -> Bool
+checkFields xs
   | length xs /= 6 = False
   | any isNothing xs = False
   | otherwise = True
-
-parseFieldAdapter :: Constraint -> String -> Maybe Field
-parseFieldAdapter constraint text = parseField text constraint
 
 constrainMinute :: Constraint
 constrainMinute = Constraint 0 59

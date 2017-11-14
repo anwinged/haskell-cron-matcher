@@ -14,7 +14,6 @@ main = hspec spec
 spec :: Spec
 spec =
   describe "Cron pattern" $ do
-    it "createFields" $ length (createFields "* * * * * *") `shouldBe` 6
     it "matches fixed time" $
       let ptn = "* * * * * *"
           date = DateTime 2017 10 11 0 0 0
