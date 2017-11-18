@@ -48,32 +48,14 @@ checkFields xs
   | any isNothing xs = False
   | otherwise = True
 
-constrainMinute :: Constraint
-constrainMinute = Constraint 0 59
-
-constrainHour :: Constraint
-constrainHour = Constraint 0 23
-
-constrainDay :: Constraint
-constrainDay = Constraint 1 31
-
-constrainMonth :: Constraint
-constrainMonth = Constraint 1 12
-
-constrainWeek :: Constraint
-constrainWeek = Constraint 1 7
-
-constrainYear :: Constraint
-constrainYear = Constraint 0 9999
-
 constraints :: [Constraint]
 constraints =
-  [ constrainMinute
-  , constrainHour
-  , constrainDay
-  , constrainMonth
-  , constrainWeek
-  , constrainYear
+  [ Constraint 0 59
+  , Constraint 0 23
+  , Constraint 1 31
+  , Constraint 1 12
+  , Constraint 1 7
+  , Constraint 0 9999
   ]
 
 check :: Pattern -> DateTime -> Bool
