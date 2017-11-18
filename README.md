@@ -2,7 +2,7 @@
 
 Match current time with given cron pattern.
 
-	$ haskell-cron-matcher "10-20 * * * * *"
+	$ haskell-cron-matcher "10-20 * * * *"
 
 See return code for result:
 

@@ -16,7 +16,6 @@ data Pattern = Pattern
   , cday    :: Field
   , cmonth  :: Field
   , cweek   :: Field
-  , cyear   :: Field
   } deriving (Show)
 
 match :: String -> DateTime -> Maybe Bool
@@ -39,12 +38,11 @@ parse text
       , cday = xs !! 2
       , cmonth = xs !! 3
       , cweek = xs !! 4
-      , cyear = xs !! 5
       }
 
 checkFields :: [Maybe Field] -> Bool
 checkFields xs
-  | length xs /= 6 = False
+  | length xs /= 5 = False
   | any isNothing xs = False
   | otherwise = True
 
@@ -55,7 +53,6 @@ constraints =
   , Constraint 1 31
   , Constraint 1 12
   , Constraint 1 7
-  , Constraint 0 9999
   ]
 
 check :: Pattern -> DateTime -> Bool
@@ -67,6 +64,5 @@ check ptn date = all isRight pairs
       , (cday ptn, day date)
       , (cmonth ptn, month date)
       , (cweek ptn, weekdayNumber $ dateWeekDay date)
-      , (cyear ptn, year date)
       ]
     isRight (p, value) = matchField p value
