@@ -41,7 +41,7 @@ test-suite haskell-cron-matcher-test
                      , hspec
                      , QuickCheck
                      , haskell-cron-matcher
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N  -Wall -Werror
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   default-language:    Haskell2010
 
 source-repository head

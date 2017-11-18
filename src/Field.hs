@@ -7,103 +7,64 @@ import           Data.Char  (isDigit)
 import           Data.Maybe
 import           Helper
 
-data Range
-  = All
-  | Range Int
+data Field
+  = Range Int
+          Int
           Int
   | Sequence [Int]
   deriving (Eq, Show)
 
-data Step
-  = Every
-  | Step Int
-  deriving (Eq, Show)
-
-data Field =
-  Field Range
-        Step
-  deriving (Eq, Show)
-
 parseField :: String -> Constraint -> Maybe Field
-parseField text = parseField' (wordsWhen (== '/') text)
-
-parseField' :: [String] -> Constraint -> Maybe Field
-parseField' [rangeText] constraint
-  | isJust range = Just (Field (fromJust range) Every)
+parseField text constraint
+  | isJust valueSequence = valueSequence
+  | isJust valueRange = valueRange
   | otherwise = Nothing
   where
-    range = parseFieldRange rangeText constraint
-parseField' [rangeText, stepText] constraint
-  | isJust range && isJust step = Just (Field (fromJust range) (fromJust step))
-  | otherwise = Nothing
-  where
-    range = parseFieldRange rangeText constraint
-    step = parseFieldStep stepText
-parseField' _ _ = Nothing
-
-parseFieldRange :: String -> Constraint -> Maybe Range
-parseFieldRange text constraint
-  | text == "*" = Just All
-  | isJust number = Just (Range (fromJust number) (fromJust number))
-  | isJust range = Just (uncurry Range (fromJust range))
-  | isJust valueSequence = fmap Sequence valueSequence
-  | otherwise = Nothing
-  where
-    number = parseNumber text constraint
-    range = parseRange text constraint
+    valueRange = parseRange (splitRange text) constraint
     valueSequence = parseSequence text constraint
 
+splitRange :: String -> [String]
+splitRange text = take 2 $ wordsWhen (== '/') text ++ ["", ""]
+
 isNumber :: String -> Bool
-isNumber = all isDigit
+isNumber ""   = False
+isNumber text = all isDigit text
 
-parseNumber :: String -> Constraint -> Maybe Int
-parseNumber text constraint
-  | isValid = Just number
-  | otherwise = Nothing
-  where
-    number = read text :: Int
-    isValid = isNumber text && number `inRange` constraint
+parseRange :: [String] -> Constraint -> Maybe Field
+parseRange [interval, step] constraint = do
+  (from, to) <- parseInterval interval constraint
+  step' <- parseStep step
+  return (Range from to step')
+parseRange _ _ = Nothing
 
-parseRange :: String -> Constraint -> Maybe (Int, Int)
-parseRange text constraint
+parseInterval :: String -> Constraint -> Maybe (Int, Int)
+parseInterval "*" (Constraint lo up) = Just (lo, up)
+parseInterval text constraint
   | isValid = Just (start, end)
   | otherwise = Nothing
   where
-    pieces = wordsWhen (== '-') text
-    isTwo = length pieces == 2
-    isAllNumbers = all isNumber pieces
-    start = read (head pieces) :: Int
-    end = read (pieces !! 1) :: Int
-    isValid =
-      isTwo &&
-      isAllNumbers && start <= start && (start, end) `inside` constraint
+    pieces = take 2 $ wordsWhen (== '-') text ++ ["", ""]
+    isNumbers = all isNumber pieces
+    [start, end] = map read pieces
+    isValid = isNumbers && start <= end && (start, end) `inside` constraint
 
-parseSequence :: String -> Constraint -> Maybe [Int]
+parseStep :: String -> Maybe Int
+parseStep "" = Just 1
+parseStep text
+  | isNumber text = Just (read text)
+parseStep _ = Nothing
+
+parseSequence :: String -> Constraint -> Maybe Field
 parseSequence text constraint
-  | isValid = Just numbers
+  | isValid = Just (Sequence numbers)
   | otherwise = Nothing
   where
     pieces = wordsWhen (== ',') text
-    isAllNumbers = all isNumber pieces
+    isNumbers = all isNumber pieces
     numbers = map read pieces
     allInRange = all (`inRange` constraint) numbers
-    isValid = length pieces >= 2 && isAllNumbers && allInRange
-
-parseFieldStep :: String -> Maybe Step
-parseFieldStep "" = Just Every
-parseFieldStep text
-  | isNumber text = Just (Step (read text))
-parseFieldStep _ = Nothing
+    isValid = not (null pieces) && isNumbers && allInRange
 
 matchField :: Field -> Int -> Bool
-matchField (Field range step) n =
-  matchFieldRange range n && matchFieldStep step n
-
-matchFieldRange :: Range -> Int -> Bool
-matchFieldRange All _           = True
-matchFieldRange (Range x y) n   = n >= x && n <= y
-matchFieldRange (Sequence xs) n = n `elem` xs
-
-matchFieldStep :: Step -> Int -> Bool
-matchFieldStep Every _    = True
-matchFieldStep (Step x) n = n `mod` x == 0
+matchField (Range f t s) n = n >= f && n <= t && n `mod` s == 0
+matchField (Sequence xs) n = n `elem` xs
