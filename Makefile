@@ -34,4 +34,4 @@ test:
 
 .PHONY: format
 format:
-	${stack} .local/hfmt -w src/
+	${stack} .local/hfmt -w app/ src/ test/
