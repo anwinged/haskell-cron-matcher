@@ -33,12 +33,12 @@ parse text
     isValid = checkFields fields
     createPattern xs =
       Pattern
-      { cminute = head xs
-      , chour = xs !! 1
-      , cday = xs !! 2
-      , cmonth = xs !! 3
-      , cweek = xs !! 4
-      }
+        { cminute = head xs
+        , chour = xs !! 1
+        , cday = xs !! 2
+        , cmonth = xs !! 3
+        , cweek = xs !! 4
+        }
 
 checkFields :: [Maybe Field] -> Bool
 checkFields xs
