@@ -10,13 +10,15 @@ import           Data.Dates
 import           Data.Maybe
 import           Field
 
-data Pattern = Pattern
-  { cminute :: Field
-  , chour   :: Field
-  , cday    :: Field
-  , cmonth  :: Field
-  , cweek   :: Field
-  } deriving (Show)
+data Pattern =
+  Pattern
+    { cminute :: Field
+    , chour   :: Field
+    , cday    :: Field
+    , cmonth  :: Field
+    , cweek   :: Field
+    }
+  deriving (Show)
 
 match :: String -> DateTime -> Maybe Bool
 match s d =

@@ -8,9 +8,7 @@ import           Data.Maybe
 import           Helper
 
 data Field
-  = Range Int
-          Int
-          Int
+  = Range Int Int Int
   | Sequence [Int]
   deriving (Eq, Show)
 
