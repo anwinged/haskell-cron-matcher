@@ -1,5 +1,4 @@
 app_name := haskell-cron-matcher
-image := ${app_name}-stack
 
 container_work_dir := /app
 cache_dir := ${container_work_dir}/.stack-work
@@ -15,23 +14,29 @@ stack := docker run \
 	--volume "${PWD}:${container_work_dir}" \
 	--env "STACK_ROOT=${cache_dir}" \
 	--workdir "${container_work_dir}" \
-	${image}
+	fpco/stack-build:lts-15.16
+
+hfmt := docker run \
+	--rm \
+	--tty \
+	--init \
+	--user "${uid}:${gid}" \
+	--volume "${PWD}:${container_work_dir}" \
+	--workdir "${container_work_dir}" \
+	anwinged/hfmt:master
 
 # Targets
 
-.PHONY: build-docker
-build-docker:
-	docker build --tag=${image} .
-	${stack} stack --system-ghc --local-bin-path=./.local install hindent hfmt
-
 .PHONY: build
 build:
+	mkdir -p .stack-work
 	${stack} stack build
 
 .PHONY: test
 test:
+	mkdir -p .stack-work
 	${stack} stack test
 
 .PHONY: format
 format:
-	${stack} .local/hfmt -w app/ src/ test/
+	${hfmt} -w app/ src/ test/

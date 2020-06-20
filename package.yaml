@@ -1,0 +1,39 @@
+name:                haskell-cron-matcher
+version:             0.1.0.0
+license:             MIT
+license-file:        LICENSE
+stability:           Experimental
+
+extra-source-files:
+  - LICENSE
+  - README.md
+  - stack.yaml
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4.9 && < 5
+  - dates
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Pattern
+    - Field
+    - Constraint
+    - Helper
+
+executable:
+  main: Main.hs
+  source-dirs: app
+  dependencies:
+    - haskell-cron-matcher
+
+tests:
+  pure:
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - haskell-cron-matcher
+      - hspec
