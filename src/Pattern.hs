@@ -21,32 +21,21 @@ data Pattern =
   deriving (Show)
 
 match :: String -> DateTime -> Maybe Bool
-match s d =
-  case parse s of
-    Just p  -> Just (check p d)
-    Nothing -> Nothing
+match ptrn datetime = parse ptrn >>= \p -> Just (check p datetime)
 
 parse :: String -> Maybe Pattern
-parse text
-  | isValid = Just (createPattern $ catMaybes fields)
-  | otherwise = Nothing
-  where
-    fields = zipWith parseField (words text) constraints
-    isValid = checkFields fields
-    createPattern xs =
-      Pattern
-        { cminute = head xs
-        , chour = xs !! 1
-        , cday = xs !! 2
-        , cmonth = xs !! 3
-        , cweek = xs !! 4
-        }
-
-checkFields :: [Maybe Field] -> Bool
-checkFields xs
-  | length xs /= 5 = False
-  | any isNothing xs = False
-  | otherwise = True
+parse text = do
+  xs <- sequence $ zipWith parseField (words text) constraints
+  if length xs /= 5
+    then Nothing
+    else Just $
+         Pattern
+           { cminute = head xs
+           , chour = xs !! 1
+           , cday = xs !! 2
+           , cmonth = xs !! 3
+           , cweek = xs !! 4
+           }
 
 constraints :: [Constraint]
 constraints =
