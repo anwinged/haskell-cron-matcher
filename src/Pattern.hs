@@ -7,7 +7,6 @@ module Pattern
 
 import           Constraint
 import           Data.Dates
-import           Data.Maybe
 import           Field
 
 data Pattern =
@@ -21,7 +20,9 @@ data Pattern =
   deriving (Show)
 
 match :: String -> DateTime -> Maybe Bool
-match ptrn datetime = parse ptrn >>= \p -> Just (check p datetime)
+match text datetime = fmap isMatched $ parse text
+  where
+    isMatched ptrn = check ptrn datetime
 
 parse :: String -> Maybe Pattern
 parse text = do
