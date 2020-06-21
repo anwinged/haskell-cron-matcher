@@ -57,4 +57,4 @@ check ptn date = all isRight pairs
       , (cmonth ptn, month date)
       , (cweek ptn, weekdayNumber $ dateWeekDay date)
       ]
-    isRight (p, value) = matchField p value
+    isRight (patternField, value) = matchField patternField value

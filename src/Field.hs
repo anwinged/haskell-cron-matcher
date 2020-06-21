@@ -3,9 +3,9 @@ module Field
   ) where
 
 import           Constraint
-import           Data.Char  (isDigit)
 import           Data.Maybe
 import           Helper
+import           Text.Read  (readMaybe)
 
 data Field
   = Range Int Int Int
@@ -18,50 +18,40 @@ parseField text constraint
   | isJust valueRange = valueRange
   | otherwise = Nothing
   where
-    valueRange = parseRange (splitRange text) constraint
+    valueRange = parseRange (splitIntoTwoWords (== '/') text) constraint
     valueSequence = parseSequence text constraint
 
-splitRange :: String -> [String]
-splitRange text = take 2 $ wordsWhen (== '/') text ++ ["", ""]
+parseRange :: (String, String) -> Constraint -> Maybe Field
+parseRange (intervalText, stepText) constraint = do
+  (from, to) <- parseRangeInterval intervalText constraint
+  step <- parseRangeStep stepText
+  return (Range from to step)
 
-isNumber :: String -> Bool
-isNumber ""   = False
-isNumber text = all isDigit text
-
-parseRange :: [String] -> Constraint -> Maybe Field
-parseRange [interval, step] constraint = do
-  (from, to) <- parseInterval interval constraint
-  step' <- parseStep step
-  return (Range from to step')
-parseRange _ _ = Nothing
-
-parseInterval :: String -> Constraint -> Maybe (Int, Int)
-parseInterval "*" (Constraint lo up) = Just (lo, up)
-parseInterval text constraint
-  | isValid = Just (start, end)
-  | otherwise = Nothing
+parseRangeInterval :: String -> Constraint -> Maybe (Int, Int)
+parseRangeInterval "*" (Constraint lo up) = Just (lo, up)
+parseRangeInterval text constraint = do
+  (from, to) <- tbind (parsedFrom, parsedTo)
+  if validToConstraint (from, to)
+    then return (from, to)
+    else Nothing
   where
-    pieces = take 2 $ wordsWhen (== '-') text ++ ["", ""]
-    isNumbers = all isNumber pieces
-    [start, end] = map read pieces
-    isValid = isNumbers && start <= end && (start, end) `inside` constraint
+    (textFrom, textTo) = splitIntoTwoWords (== '-') text
+    (parsedFrom, parsedTo) = (readMaybe textFrom, readMaybe textTo)
+    validToConstraint (start, end) =
+      start <= end && (start, end) `inside` constraint
 
-parseStep :: String -> Maybe Int
-parseStep "" = Just 1
-parseStep text
-  | isNumber text = Just (read text)
-parseStep _ = Nothing
+parseRangeStep :: String -> Maybe Int
+parseRangeStep ""   = Just 1
+parseRangeStep text = readMaybe text
 
 parseSequence :: String -> Constraint -> Maybe Field
-parseSequence text constraint
-  | isValid = Just (Sequence numbers)
-  | otherwise = Nothing
+parseSequence text constraint = do
+  numbers <- sequence $ map readMaybe $ wordsWhen (== ',') text
+  if validToConstraint numbers
+    then return $ Sequence numbers
+    else Nothing
   where
-    pieces = wordsWhen (== ',') text
-    isNumbers = all isNumber pieces
-    numbers = map read pieces
-    allInRange = all (`inRange` constraint) numbers
-    isValid = not (null pieces) && isNumbers && allInRange
+    validToConstraint = all (`inRange` constraint)
 
 matchField :: Field -> Int -> Bool
 matchField (Range f t s) n = n >= f && n <= t && n `mod` s == 0

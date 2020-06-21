@@ -37,6 +37,11 @@ test:
 	mkdir -p .stack-work
 	${stack} stack test
 
+.PHONY: test-with-coverage
+test-with-coverage:
+	mkdir -p .stack-work
+	${stack} stack test --coverage
+
 .PHONY: format
 format:
 	${hfmt} -w app/ src/ test/
